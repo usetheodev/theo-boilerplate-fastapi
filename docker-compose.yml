@@ -1,0 +1,67 @@
+# =============================================================================
+# Docker Compose for local development
+# =============================================================================
+# Usage:
+#   docker compose up -d        # Start all services
+#   docker compose logs -f api  # Follow API logs
+#   docker compose down         # Stop all services
+# =============================================================================
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: theo-fastapi-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: theo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
+    container_name: theo-fastapi-api
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/theo
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - PORT=3000
+      - SECRET_KEY=dev-secret-key-change-in-production
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/api:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 3000 --reload
+
+  # Vite Frontend
+  web:
+    image: node:20-alpine
+    container_name: theo-fastapi-web
+    working_dir: /app
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+    command: sh -c "npm install -g pnpm && pnpm install && pnpm dev --host"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:

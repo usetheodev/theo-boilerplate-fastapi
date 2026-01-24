@@ -1,0 +1,22 @@
+{
+  "name": "theo-boilerplate-fastapi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Theo Boilerplate with FastAPI + SQLModel + Alembic + UV",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "dev:web": "pnpm --filter @theo-boilerplate-fastapi/web dev",
+    "build:web": "pnpm --filter @theo-boilerplate-fastapi/web build"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
